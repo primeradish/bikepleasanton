@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bike Pleasanton</title>
+<style>
+  :root {
+    --deep-blue: #0d3b66;
+    --mid-blue: #1d6fa5;
+    --sky-blue: #4fb3d9;
+    --sun-yellow: #f4b942;
+    --coral: #ee6c4d;
+    --leaf-green: #6fbf73;
+    --cream: #f7fbfd;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, var(--deep-blue) 0%, var(--mid-blue) 55%, var(--sky-blue) 100%);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* decorative color dots, like jersey confetti */
+  .dot {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.85;
+  }
+  .dot.yellow { width: 18px; height: 18px; background: var(--sun-yellow); top: 12%; left: 18%; }
+  .dot.coral  { width: 14px; height: 14px; background: var(--coral); top: 70%; left: 12%; }
+  .dot.green  { width: 22px; height: 22px; background: var(--leaf-green); top: 80%; left: 82%; }
+  .dot.yellow2{ width: 12px; height: 12px; background: var(--sun-yellow); top: 20%; left: 85%; }
+  .dot.coral2 { width: 20px; height: 20px; background: var(--coral); top: 45%; left: 90%; }
+  .dot.green2 { width: 10px; height: 10px; background: var(--leaf-green); top: 55%; left: 6%; }
+
+  .card {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: var(--cream);
+    padding: 40px;
+    max-width: 480px;
+  }
+
+  .bike-icon {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 24px;
+    animation: rollIn 1s ease-out;
+  }
+
+  @keyframes rollIn {
+    from { transform: translateX(-40px) rotate(-20deg); opacity: 0; }
+    to   { transform: translateX(0) rotate(0deg); opacity: 1; }
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+
+  h1 span {
+    color: var(--sun-yellow);
+  }
+
+  p.tagline {
+    font-size: 1.1rem;
+    margin: 0 0 32px;
+    color: rgba(247, 251, 253, 0.85);
+  }
+
+  .coming-soon {
+    display: inline-block;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 999px;
+    background: rgba(247, 251, 253, 0.12);
+    border: 1.5px solid rgba(247, 251, 253, 0.4);
+    letter-spacing: 0.03em;
+  }
+
+  footer {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    color: rgba(247, 251, 253, 0.6);
+    font-size: 0.85rem;
+    z-index: 2;
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.9rem; }
+    .bike-icon { width: 90px; height: 90px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="dot yellow"></div>
+  <div class="dot coral"></div>
+  <div class="dot green"></div>
+  <div class="dot yellow2"></div>
+  <div class="dot coral2"></div>
+  <div class="dot green2"></div>
+
+  <div class="card">
+    <svg class="bike-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="14" cy="46" r="11" stroke="#f7fbfd" stroke-width="3"/>
+      <circle cx="50" cy="46" r="11" stroke="#f7fbfd" stroke-width="3"/>
+      <path d="M14 46L27 22H37L27 46" stroke="#f7fbfd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M27 22H33" stroke="#f7fbfd" stroke-width="3" stroke-linecap="round"/>
+      <path d="M27 46H50L41 30" stroke="#f7fbfd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M37 22L41 30" stroke="#f7fbfd" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="27" cy="22" r="2.5" fill="#f4b942"/>
+      <path d="M20 14H26" stroke="#f4b942" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+
+    <h1>Bike <span>Pleasanton</span></h1>
+    <div class="coming-soon">Coming Soon</div>
+  </div>
+
+  <footer>bikepleasanton.com</footer>
+
+</body>
+</html>
