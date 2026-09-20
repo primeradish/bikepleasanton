@@ -1,140 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bike Pleasanton</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bike Pleasanton — Working toward a more bike-friendly city</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/site.css">
+
 <style>
-  :root {
-    --deep-blue: #0d3b66;
-    --mid-blue: #1d6fa5;
-    --sky-blue: #4fb3d9;
-    --sun-yellow: #f4b942;
-    --coral: #eb6a49;
-    --leaf-green: #6fbf73;
-    --cream: #f7fbfd;
+  :root{
+    --ink:#16302A;
+    --paper:#EEF2EA;
+    --paper-card:#FFFFFF;
+    --pine:#1F5C4B;
+    --pine-dark:#153F34;
+    --trail-blue:#2D6CDF;
+    --trail-blue-dark:#1E4FB0;
+    --bus-yellow:#F2B705;
+    --brick:#C1443A;
+    --line:#D9E0D4;
+    --shadow: 0 6px 18px rgba(22,48,42,0.10);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; font-family:'Inter', sans-serif; color:var(--ink); background:var(--paper); }
+
+  a{ color:var(--trail-blue-dark); }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:0.9rem;
+    border:none; border-radius:9px; padding:11px 18px; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    transition:transform 0.06s ease, filter 0.15s ease;
+    text-decoration:none;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn:focus-visible{ outline:3px solid var(--bus-yellow); outline-offset:2px; }
+  .btn-primary{ background:var(--trail-blue); color:#fff; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-yellow{ background:var(--bus-yellow); color:#3A2B00; }
+  .btn-yellow:hover{ filter:brightness(1.05); }
+  .btn-ghost{ background:transparent; color:#EAF3EC; border:1.5px solid rgba(255,255,255,0.4); }
+  .btn-ghost:hover{ background:rgba(255,255,255,0.12); }
+
+  header{
+    background:var(--pine); color:#EAF3EC;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 22px; box-shadow:var(--shadow); position:sticky; top:0; z-index:20;
+  }
+  .header-left{ display:flex; align-items:center; gap:14px; }
+  .brand{ display:flex; align-items:center; gap:12px; text-decoration:none; }
+  .brand-mark{ font-size:1.5rem; line-height:1; }
+  .brand h1{ font-family:'Fredoka', sans-serif; font-weight:600; font-size:1.35rem; margin:0; color:#EAF3EC; }
+
+  main{ max-width:1080px; margin:0 auto; padding:0 24px; }
+
+  .hero{
+    padding:72px 0 56px 0;
+    max-width:660px;
+  }
+  .hero h2{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:2.6rem;
+    line-height:1.15;
+    margin:0 0 18px 0;
+    color:var(--pine-dark);
+  }
+  .hero p{
+    font-size:1.05rem;
+    line-height:1.65;
+    color:#3E5449;
+    margin:0 0 28px 0;
+  }
+  .hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .btn-primary.large, .btn-ghost.large{ padding:13px 22px; font-size:0.95rem; }
+  .btn-ghost.large{ color:var(--pine-dark); border-color:var(--pine-dark); }
+  .btn-ghost.large:hover{ background:#E3ECE1; }
+
+  .pillars{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:20px;
+    padding:44px 0 52px 0;
+    border-top:1px solid var(--line);
+  }
+  .pillar h3{
+    font-family:'Fredoka', sans-serif;
+    font-size:1.05rem; font-weight:600;
+    margin:0 0 8px 0; color:var(--ink);
+    display:flex; align-items:center; gap:9px;
+  }
+  .pillar .pillar-icon{ font-size:1.2rem; }
+  .pillar p{ font-size:0.9rem; line-height:1.55; color:#4E6259; margin:0; }
+
+  .program-band{
+    background:var(--paper-card);
+    border:1.5px solid var(--line);
+    border-left:5px solid var(--trail-blue);
+    border-radius:14px;
+    padding:30px 32px;
+    margin-bottom:52px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:24px; flex-wrap:wrap;
+  }
+  .program-band .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--trail-blue-dark);
+    margin:0 0 8px 0;
+  }
+  .program-band h3{
+    font-family:'Fredoka', sans-serif; font-weight:600; font-size:1.25rem;
+    margin:0 0 8px 0; color:var(--pine-dark);
+  }
+  .program-band p{ margin:0; font-size:0.92rem; line-height:1.55; color:#4E6259; max-width:480px; }
+
+  .mail-band{
+    background:var(--pine);
+    color:#EAF3EC;
+    border-radius:14px;
+    padding:34px 30px;
+    margin-bottom:56px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:20px; flex-wrap:wrap;
+  }
+  .mail-band h3{
+    font-family:'Fredoka', sans-serif; font-weight:600; font-size:1.2rem;
+    margin:0 0 6px 0;
+  }
+  .mail-band p{ margin:0; font-size:0.88rem; color:#CFE3DA; max-width:420px; }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:20px 24px 40px 24px;
+    text-align:center;
+    font-size:0.8rem;
+    color:#6B7D72;
   }
 
-  * { box-sizing: border-box; }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  }
-
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(160deg, var(--deep-blue) 0%, var(--mid-blue) 55%, var(--sky-blue) 100%);
-    overflow: hidden;
-    position: relative;
-  }
-
-  /* decorative color dots, like jersey confetti */
-  .dot {
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0.85;
-  }
-  .dot.yellow { width: 18px; height: 18px; background: var(--sun-yellow); top: 12%; left: 18%; }
-  .dot.coral  { width: 14px; height: 14px; background: var(--coral); top: 70%; left: 12%; }
-  .dot.green  { width: 22px; height: 22px; background: var(--leaf-green); top: 80%; left: 82%; }
-  .dot.yellow2{ width: 12px; height: 12px; background: var(--sun-yellow); top: 20%; left: 85%; }
-  .dot.coral2 { width: 20px; height: 20px; background: var(--coral); top: 45%; left: 90%; }
-  .dot.green2 { width: 10px; height: 10px; background: var(--leaf-green); top: 55%; left: 6%; }
-
-  .card {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    color: var(--cream);
-    padding: 40px;
-    max-width: 480px;
-  }
-
-  .bike-icon {
-    width: 120px;
-    height: 120px;
-    margin-bottom: 24px;
-    animation: rollIn 1s ease-out;
-  }
-
-  @keyframes rollIn {
-    from { transform: translateX(-40px) rotate(-20deg); opacity: 0; }
-    to   { transform: translateX(0) rotate(0deg); opacity: 1; }
-  }
-
-  h1 {
-    font-size: 2.4rem;
-    font-weight: 700;
-    margin: 0 0 8px;
-    letter-spacing: 0.01em;
-  }
-
-  h1 span {
-    color: var(--sun-yellow);
-  }
-
-  p.tagline {
-    font-size: 1.1rem;
-    margin: 0 0 32px;
-    color: rgba(247, 251, 253, 0.85);
-  }
-
-  .coming-soon {
-    display: inline-block;
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 12px 28px;
-    border-radius: 999px;
-    background: rgba(247, 251, 253, 0.12);
-    border: 1.5px solid rgba(247, 251, 253, 0.4);
-    letter-spacing: 0.03em;
-  }
-
-  footer {
-    position: absolute;
-    bottom: 20px;
-    width: 100%;
-    text-align: center;
-    color: rgba(247, 251, 253, 0.6);
-    font-size: 0.85rem;
-    z-index: 2;
-  }
-
-  @media (max-width: 480px) {
-    h1 { font-size: 1.9rem; }
-    .bike-icon { width: 90px; height: 90px; }
+  @media (max-width:760px){
+    .pillars{ grid-template-columns:1fr; }
+    .hero h2{ font-size:2.1rem; }
+    .program-band{ flex-direction:column; align-items:flex-start; }
   }
 </style>
 </head>
 <body>
 
-  <div class="dot yellow"></div>
-  <div class="dot coral"></div>
-  <div class="dot green"></div>
-  <div class="dot yellow2"></div>
-  <div class="dot coral2"></div>
-  <div class="dot green2"></div>
-
-  <div class="card">
-    <svg class="bike-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="14" cy="46" r="11" stroke="#f7fbfd" stroke-width="3"/>
-      <circle cx="50" cy="46" r="11" stroke="#f7fbfd" stroke-width="3"/>
-      <path d="M14 46L27 22H37L27 46" stroke="#f7fbfd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M27 22H33" stroke="#f7fbfd" stroke-width="3" stroke-linecap="round"/>
-      <path d="M27 46H50L41 30" stroke="#f7fbfd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M37 22L41 30" stroke="#f7fbfd" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="27" cy="22" r="2.5" fill="#f4b942"/>
-      <path d="M20 14H26" stroke="#f4b942" stroke-width="3" stroke-linecap="round"/>
-    </svg>
-
-    <h1>Bike <span>Pleasanton</span></h1>
-    <div class="coming-soon">Coming Soon!</div>
+<header>
+  <div class="header-left">
+    <div id="site-menu-slot"></div>
+    <a class="brand" href="index.html">
+      <span class="brand-mark">🚲</span>
+      <h1>Bike Pleasanton</h1>
+    </a>
   </div>
+  <a class="btn btn-ghost mailing-link" id="header-mail-btn" href="https://forms.gle/TBRocHdKMRDZk4A89" target="_blank" rel="noopener">Join our mailing list</a>
+</header>
 
+<main>
+  <section class="hero">
+    <h2>Creating a more bike-friendly Pleasanton.</h2>
+    <p>Bike Pleasanton is a group of community members working together to make it <b>easier</b> and <b>safer</b> for people to bike in Pleasanton. </p>
+      
+    <p>We are currently focused on making our streets safer for kids to bike to school.</p>
+    <div class="hero-actions">
+      <a href="about-schools-program.html" class="btn btn-primary large">Explore our School Program</a>
+      <a href="alisal.html" class="btn btn-ghost large">Take Alisal Elementary's Bike Survey</a>
+    </div>
+  </section>
+
+  
+  <!-- <section class="program-band">
+    <div>
+      <p class="tag">Featured program</p>
+      <h3>Safe Routes to School</h3>
+      <p>A bike-route survey currently available for Alisal elementary school. Families trace the route they ride, rate how safe it feels, and flag the exact spots that need fixing.</p>
+    </div>
+    <a href="schools/index.html" class="btn btn-primary">Visit the Schools program</a>
+  </section> -->
+
+  <section class="mail-band">
+    <div>
+      <h3>Stay in the loop</h3>
+      <p>We'll email you when new school surveys open and about upcoming advocacy opportunities.</p>
+    </div>
+    <a class="btn btn-yellow mailing-link" id="band-mail-btn" href="https://forms.gle/TBRocHdKMRDZk4A89" target="_blank" rel="noopener">Join our mailing list</a>
+  </section>
+</main>
+
+<footer>
+  Bike Pleasanton is an independent, resident-run community project — not an official City of Pleasanton or Pleasanton Unified School District site.
+</footer>
+
+<script>
+  window.SITE_ROOT = '';
+  window.CURRENT_PAGE = 'home';
+</script>
+<!-- <script src="shared/schools-data.js"></script>
+<script src="shared/mailing-list-link.js"></script>
+<script src="shared/site-nav.js"></script> -->
 </body>
 </html>
