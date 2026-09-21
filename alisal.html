@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bike Pleasanton — Route Map</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#16302A;
+    --paper:#EEF2EA;
+    --paper-card:#FFFFFF;
+    --pine:#1F5C4B;
+    --pine-dark:#153F34;
+    --trail-blue:#2D6CDF;
+    --trail-blue-dark:#1E4FB0;
+    --bus-yellow:#F2B705;
+    --brick:#C1443A;
+    --line:#D9E0D4;
+    --shadow: 0 6px 18px rgba(22,48,42,0.10);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+  }
+
+  #app{
+    display:grid;
+    grid-template-columns: 380px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "header header"
+      "sidebar map";
+    height:100vh;
+    width:100vw;
+    overflow:hidden;
+  }
+
+  header{
+    grid-area:header;
+    background:var(--pine);
+    color:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 22px;
+    box-shadow:var(--shadow);
+    z-index:5;
+  }
+
+  .brand{ display:flex; align-items:center; gap:12px; text-decoration:none; }
+
+  .brand-mark{ font-size:1.5rem; line-height:1; }
+
+  .brand h1{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:1.35rem;
+    margin:0;
+    color:#EAF3EC;
+    letter-spacing:0.2px;
+  }
+
+  .brand p{
+    margin:0;
+    font-size:0.78rem;
+    color:#CFE3DA;
+    font-weight:500;
+  }
+
+  .stat-pill{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.18);
+    padding:6px 12px;
+    border-radius:999px;
+    color:#EAF3EC;
+  }
+
+  #sidebar{
+    grid-area:sidebar;
+    background:var(--paper);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    overflow-y:auto;
+  }
+
+  #map{ grid-area:map; height:100%; width:100%; background:#dfe7de; }
+
+  .panel{
+    padding:18px 20px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .panel h2{
+    font-family:'Fredoka', sans-serif;
+    font-size:0.95rem;
+    font-weight:600;
+    margin:0 0 4px 0;
+    color:var(--pine-dark);
+  }
+
+  .panel .hint{
+    font-size:0.8rem;
+    color:#4E6259;
+    margin:0 0 12px 0;
+    line-height:1.4;
+  }
+
+  label{
+   font-size:0.8rem;
+    color:#4E6259;
+    margin:0 0 12px 0;
+    line-height:1.4;
+  }
+
+  input[type=text]{
+    width:100%;
+    padding:9px 11px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-family:'Inter', sans-serif;
+    font-size:0.9rem;
+    background:var(--paper-card);
+    color:var(--ink);
+  }
+  input[type=text]:focus{
+    outline:none;
+    border-color:var(--trail-blue);
+    box-shadow:0 0 0 3px rgba(45,108,223,0.15);
+  }
+
+  select{
+    width:100%;
+    padding:9px 11px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-family:'Inter', sans-serif;
+    font-size:0.9rem;
+    background:var(--paper-card);
+    color:var(--ink);
+    cursor:pointer;
+  }
+  select:focus{
+    outline:none;
+    border-color:var(--trail-blue);
+    box-shadow:0 0 0 3px rgba(45,108,223,0.15);
+  }
+
+  textarea{
+    width:100%;
+    padding:9px 11px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-family:'Inter', sans-serif;
+    font-size:0.9rem;
+    background:var(--paper-card);
+    color:var(--ink);
+    resize:vertical;
+  }
+  textarea:focus{
+    outline:none;
+    border-color:var(--trail-blue);
+    box-shadow:0 0 0 3px rgba(45,108,223,0.15);
+  }
+
+  .btn{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.86rem;
+    border:none;
+    border-radius:9px;
+    padding:10px 14px;
+    cursor:pointer;
+    transition:transform 0.06s ease, filter 0.15s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn:focus-visible{ outline:3px solid var(--bus-yellow); outline-offset:2px; }
+  .btn:disabled{ opacity:0.45; cursor:not-allowed; }
+
+  .btn-primary{ background:var(--trail-blue); color:#fff; }
+  .btn-primary:hover:not(:disabled){ filter:brightness(1.08); }
+
+  .btn-yellow{ background:var(--bus-yellow); color:#3A2B00; }
+  .btn-yellow:hover:not(:disabled){ filter:brightness(1.05); }
+
+  .btn-ghost{ background:transparent; color:var(--pine-dark); border:1.5px solid var(--line); }
+  .btn-ghost:hover:not(:disabled){ background:#E3ECE1; }
+
+  .btn-danger{ background:transparent; color:var(--brick); border:1.5px solid #EFD3D0; padding:6px 10px; font-size:0.76rem; }
+  .btn-danger:hover{ background:#FBEEEC; }
+
+  .row{ display:flex; gap:8px; margin-top:12px; }
+  .row .btn{ flex:1; }
+
+  .danger-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:8px;
+  }
+
+  .caution-sign-source{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    width:64px;
+    height:58px;
+    flex-shrink:0;
+    background:var(--paper-card);
+    border:1.5px dashed var(--bus-yellow);
+    border-radius:9px;
+    cursor:grab;
+    user-select:none;
+    transition:filter 0.15s ease, opacity 0.15s ease, transform 0.06s ease;
+  }
+  .caution-sign-source span{
+    font-size:0.6rem;
+    font-weight:600;
+    color:#8A6A00;
+    text-align:center;
+    line-height:1.1;
+  }
+  .caution-sign-source:hover{ filter:brightness(1.04); }
+  .caution-sign-source:active{ cursor:grabbing; transform:scale(0.97); }
+  .caution-sign-source.disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+    border-style:solid;
+    border-color:var(--line);
+  }
+  .caution-sign-source.dragging{ opacity:0.5; }
+
+  .danger-hint{
+    font-size:0.78rem;
+    color:#4E6259;
+    line-height:1.4;
+  }
+  #danger-count{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:600;
+    color:var(--pine-dark);
+  }
+
+  #map.drop-armed{ outline:3px dashed var(--bus-yellow); outline-offset:-3px; }
+
+  #draw-status{
+    display:none;
+    align-items:center;
+    gap:8px;
+    background:#E7F0FF;
+    border:1.5px dashed var(--trail-blue);
+    color:var(--trail-blue-dark);
+    padding:9px 11px;
+    border-radius:9px;
+    font-size:0.82rem;
+    font-weight:500;
+    margin-top:12px;
+  }
+  #draw-status.active{ display:flex; }
+  .pulse-dot{
+    width:8px; height:8px; border-radius:50%; background:var(--trail-blue);
+    animation:pulse 1.2s infinite ease-in-out;
+    flex-shrink:0;
+  }
+  @keyframes pulse{ 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:0.4; transform:scale(0.7);} }
+
+  #route-count{
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  #routes-panel{
+    flex:none;
+    overflow-y:visible;
+    padding:16px 20px 30px 20px;
+  }
+
+  #routes-panel h2{
+    font-family:'Fredoka', sans-serif;
+    font-size:0.85rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:#5B6F65;
+    margin:0;
+  }
+
+  .routes-panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:14px;
+  }
+
+  .export-group{ display:flex; gap:6px; }
+
+  .btn-export{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    background:var(--paper-card);
+    color:var(--pine-dark);
+    border:1.5px solid var(--line);
+    border-radius:7px;
+    padding:6px 9px;
+    cursor:pointer;
+    transition:background 0.15s ease;
+  }
+  .btn-export:hover:not(:disabled){ background:#E3ECE1; }
+  .btn-export:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn-export:focus-visible{ outline:3px solid var(--bus-yellow); outline-offset:2px; }
+  .btn-export.active{ background:var(--pine); color:#fff; border-color:var(--pine); }
+
+  .empty-state{
+    text-align:center;
+    padding:34px 10px;
+    color:#6B7D72;
+  }
+  .empty-state svg{ width:46px; height:46px; opacity:0.5; margin-bottom:10px; }
+  .empty-state p{ font-size:0.85rem; margin:0; line-height:1.5; }
+
+  #routes-list{ display:none; }
+
+  .route-card{
+    background:var(--paper-card);
+    border:1.5px solid var(--line);
+    border-left:4px solid var(--marker-color, var(--trail-blue));
+    border-radius:10px;
+    padding:12px 13px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:box-shadow 0.15s ease, transform 0.1s ease;
+    animation:slideIn 0.35s ease;
+  }
+  .route-card:hover{ box-shadow:var(--shadow); }
+  .route-card.selected{ box-shadow:var(--shadow); border-left-color:var(--bus-yellow); }
+
+  @keyframes slideIn{
+    from{ opacity:0; transform:translateX(8px); }
+    to{ opacity:1; transform:translateX(0); }
+  }
+
+  .route-card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .route-marker-no{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    color:#8A9C90;
+    letter-spacing:0.04em;
+  }
+  .route-name{
+    font-weight:600;
+    font-size:0.92rem;
+    color:var(--ink);
+    margin:2px 0 6px 0;
+  }
+  .route-meta{
+    display:flex;
+    gap:12px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.74rem;
+    color:#5B6F65;
+  }
+  .route-concerns{
+    font-size:0.78rem;
+    color:#4E6259;
+    background:#F4F7F2;
+    border-radius:6px;
+    padding:7px 9px;
+    margin-top:8px;
+    line-height:1.4;
+    white-space:pre-wrap;
+  }
+  .route-comfort{
+    font-size:0.78rem;
+    color:#4E6259;
+    background:#F4F7F2;
+    border-radius:6px;
+    padding:7px 9px;
+    margin-top:8px;
+    line-height:1.4;
+    white-space:pre-wrap;
+  }
+  .route-card-bottom{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:8px;
+  }
+
+  #banner{
+    position:fixed;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:#fff;
+    padding:11px 18px;
+    border-radius:9px;
+    font-size:0.85rem;
+    box-shadow:var(--shadow);
+    z-index:1000;
+    display:none;
+  }
+  #banner.error{ background:var(--brick); }
+
+  .leaflet-div-icon{ background:transparent; border:none; }
+
+  @media (max-width: 760px){
+    #app{
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 42vh 1fr;
+      grid-template-areas:
+        "header"
+        "map"
+        "sidebar";
+    }
+    #sidebar{
+      border-right:none;
+      border-top:1px solid var(--line);
+      overflow-y:auto;
+    }
+    #routes-panel{
+      overflow-y:visible;
+      flex:none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- <header>
+  <div class="header-left">
+    <div id="site-menu-slot"></div>
+    <a class="brand" href="index.html">
+      <span class="brand-mark">🚲</span>
+      <h1>Bike Pleasanton</h1>
+    </a>
+  </div>
+  <a class="btn btn-ghost mailing-link" id="header-mail-btn" href="https://forms.gle/TBRocHdKMRDZk4A89" target="_blank" rel="noopener">Join our mailing list</a>
+</header> -->
+
+  <header>
+    <div class="brand">
+      <!-- <svg class="brand-mark" viewBox="0 0 48 48" fill="none">
+        <circle cx="12" cy="34" r="7" stroke="#F2B705" stroke-width="3"/>
+        <circle cx="36" cy="34" r="7" stroke="#F2B705" stroke-width="3"/>
+        <path d="M12 34L20 16H26L32 34" stroke="#EEF2EA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 22H30" stroke="#EEF2EA" stroke-width="3" stroke-linecap="round"/>
+        <path d="M20 16L26 16" stroke="#EEF2EA" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="20" cy="16" r="2.4" fill="#F2B705"/>
+      </svg> -->
+      <div>
+        <!-- <h1>Alisal Elementary — trace your bike route to school</h1>
+        <p>Complete this survey if you or your child bike to Alisal Elementary</p> -->
+        <a class="brand" href="index.html">
+         <span class="brand-mark">🚲</span>
+         <h1>Bike Pleasanton</h1>
+        </a>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="btn-export" id="btn-admin-toggle" title="Password-protected: view every route submitted by every visitor">Admin view</button>
+      <div class="stat-pill" id="header-count">0 of your routes</div>
+    </div>
+  </header>
+
+  <div id="sidebar">
+    <div class="panel">
+      <h2>Draw your route</h2>
+      <p class="hint">Click "Start drawing," then click along the streets you take from your home to school. Click "Finish" when you arrive.</p>
+
+      <div class="row">
+        <button class="btn btn-primary" id="btn-start">Start drawing</button>
+        <button class="btn btn-ghost" id="btn-locate" title="Center on my location">📍 My location</button>
+      </div>
+
+      <div id="draw-status">
+        <span class="pulse-dot"></span>
+        <span id="draw-status-text">Click the map to add points — <span id="point-count">0</span> so far</span>
+      </div>
+
+      <div class="row" id="draw-actions" style="display:none;">
+        <button class="btn btn-ghost" id="btn-undo">Undo point</button>
+        <button class="btn btn-yellow" id="btn-finish" disabled>Finish route</button>
+        <button class="btn btn-ghost" id="btn-cancel">Cancel</button>
+      </div>
+
+      <br>
+      <label>Mark dangerous spots on your route by dragging the caution sign onto the map</label>
+      <div class="danger-row">
+        <div class="caution-sign-source disabled" id="caution-drag-source" draggable="false" title="Start drawing a route to enable this">
+          <svg width="24" height="24" viewBox="0 0 30 30"><path d="M15 3L28 26H2L15 3Z" fill="#F2B705" stroke="#3A2B00" stroke-width="1.5" stroke-linejoin="round"/><rect x="13.7" y="10" width="2.6" height="8" rx="1" fill="#3A2B00"/><circle cx="15" cy="21" r="1.6" fill="#3A2B00"/></svg>
+          <span>Drag onto map</span>
+        </div>
+        <p class="danger-hint" id="danger-status"><span id="danger-status-text">Start drawing your route to enable this</span> — <span id="danger-count">0</span> marked</p>
+      </div>
+      
+      <br>
+
+      <label for="safety-rating">How would you rate the safety of your bike ride to school?</label>
+      <select id="safety-rating">
+        <option value="">Select a rating…</option>
+        <option value="A">A — Safe </option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+        <option value="F">F — Dangerous </option>
+      </select>
+
+      <br>
+      <br>
+      <label for="safety-concerns"> Take a minute to consider your bike ride to school. Are there any points along your route that you wish felt safer? Tell us about them below. Make sure to specify street names or describe the location. </label>
+      <textarea id="safety-concerns" rows="3" maxlength="500" placeholder=" "></textarea>
+
+      
+      <br>
+      <br>
+      <label for="comfort-suggestions">Is there anything you wish you could change about your ride to make it more comfortable?</label>
+      <textarea id="comfort-suggestions" rows="3" maxlength="500" placeholder="e.g. Change where a signal crossing button is located, wider bike lane..."></textarea>
+
+      <div class="row">
+        <button class="btn btn-primary" id="btn-submit" disabled>Submit</button>
+      </div>
+    </div>
+
+    <div id="routes-panel">
+      <div class="routes-panel-head">
+        <h2><span id="route-count">0</span> <span id="route-count-label">of your routes on the map</span></h2>
+        <div class="export-group">
+          <button class="btn-export" id="btn-export-geojson" title="Download these routes as GeoJSON (for maps/GIS)">Export GeoJSON</button>
+          <button class="btn-export" id="btn-export-csv" title="Download these routes as a spreadsheet">Export CSV</button>
+        </div>
+      </div>
+      <!-- <p class="hint" id="privacy-hint" style="padding:0 20px; margin-top:-4px;">Only you can see the routes you add — they're private to this browser.</p> -->
+      <div id="routes-list"></div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+</div>
+
+<div id="banner"></div>
+
+<script>
+  let appBooted = false;
+  function loadScript(src, onSuccess, onFail){
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = onSuccess;
+    s.onerror = onFail;
+    document.head.appendChild(s);
+  }
+  function safeInitApp(){
+    if (appBooted) return;
+    appBooted = true;
+    initApp();
+  }
+  function bootApp(){
+    if (typeof L !== 'undefined') { safeInitApp(); return; }
+    // Primary CDN failed to load Leaflet — try a backup CDN before giving up.
+    loadScript(
+      'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+      safeInitApp,
+      safeInitApp // still call so it shows the "couldn't load" message instead of leaving the page dead
+    );
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" onerror="bootApp()"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+function initApp(){
+
+  if (typeof L === 'undefined') {
+    document.getElementById('map').innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center;font-family:Inter,sans-serif;color:#4E6259;">' +
+      'The map library couldn\'t load — check your connection and refresh the page.</div>';
+    return;
+  }
+
+  const PALETTE = ['#2D6CDF','#1F5C4B','#C1443A','#8A5CDB','#0E8F8F','#B8620A'];
+
+  // The school this map is centered on. Change these two lines to point
+  // the map at a different school.
+  const SCHOOL_NAME = 'Alisal Elementary School';
+  const SCHOOL_ADDRESS = '1454 Santa Rita Rd, Pleasanton, CA 94566';
+  const SCHOOL_FALLBACK_COORDS = [37.6493, -121.8730]; // used only if geocoding fails
+
+  // ---------- Map setup ----------
+  const map = L.map('map', { zoomControl: true }).setView(SCHOOL_FALLBACK_COORDS, 15);
+
+  function starIcon(){
+    return L.divIcon({
+      html: `<svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="15" fill="#1F5C4B" stroke="#fff" stroke-width="3"/><path d="M17 8l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7z" fill="#F2B705"/></svg>`,
+      className: 'leaflet-div-icon', iconSize:[34,34], iconAnchor:[17,17]
+    });
+  }
+
+  L.marker(SCHOOL_FALLBACK_COORDS, { icon: starIcon(), zIndexOffset: 1000 })
+    .addTo(map)
+    .bindPopup(`<strong>${SCHOOL_NAME}</strong>`)
+    .bindTooltip(SCHOOL_NAME, { direction: 'top', permanent: false });
+
+  // Geocode the school address for an accurate center point, then
+  // re-center the map and the marker there. Falls back silently to
+  // SCHOOL_FALLBACK_COORDS (already showing) if the lookup fails.
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(SCHOOL_ADDRESS + ', USA'))
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('geocode failed')))
+    .then(results => {
+      if (!results || !results.length) return;
+      const lat = parseFloat(results[0].lat);
+      const lon = parseFloat(results[0].lon);
+      if (isNaN(lat) || isNaN(lon)) return;
+      map.setView([lat, lon], 16);
+      L.marker([lat, lon], { icon: starIcon(), zIndexOffset: 1000 })
+        .addTo(map)
+        .bindPopup(`<strong>${SCHOOL_NAME}</strong>`)
+        .bindTooltip(SCHOOL_NAME, { direction: 'top', permanent: false });
+    })
+    .catch(() => { /* keep the fallback view already shown */ });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_3ji2_1_d1679c95a937e954310dc0ee', {
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 20
+  }).addTo(map);
+
+  // Guard against 0-size container on first paint (grid layout race)
+  setTimeout(() => map.invalidateSize(), 150);
+  window.addEventListener('resize', () => map.invalidateSize());
+
+  function homeIcon(){
+    return L.divIcon({
+      html: `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="#2D6CDF" stroke="#fff" stroke-width="2.5"/><path d="M9 16L15 10L21 16V21H9V16Z" fill="#fff"/></svg>`,
+      className: 'leaflet-div-icon', iconSize:[30,30], iconAnchor:[15,15]
+    });
+  }
+  function schoolIcon(){
+    return L.divIcon({
+      html: `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="#F2B705" stroke="#fff" stroke-width="2.5"/><path d="M9 12L15 9L21 12L15 15L9 12Z" fill="#3A2B00"/><path d="M11 13.5V18C11 18 13 19.5 15 19.5C17 19.5 19 18 19 18V13.5" stroke="#3A2B00" stroke-width="1.4" fill="none"/></svg>`,
+      className: 'leaflet-div-icon', iconSize:[30,30], iconAnchor:[15,15]
+    });
+  }
+
+  function cautionIcon(){
+    return L.divIcon({
+      html: `<svg width="30" height="30" viewBox="0 0 30 30"><path d="M15 3L28 26H2L15 3Z" fill="#F2B705" stroke="#3A2B00" stroke-width="1.5" stroke-linejoin="round"/><rect x="13.7" y="10" width="2.6" height="8" rx="1" fill="#3A2B00"/><circle cx="15" cy="21" r="1.6" fill="#3A2B00"/></svg>`,
+      className: 'leaflet-div-icon', iconSize:[30,30], iconAnchor:[15,27]
+    });
+  }
+
+  // ---------- Drawing state ----------
+  let drawing = false;
+  let routeReady = false; // true once "Finish route" has locked in a drawn line, awaiting Submit
+  let drawPoints = [];
+  let drawLine = null;
+  let drawMarkers = [];
+  let dangerPoints = []; // danger/caution spots for the route currently being composed
+  let dangerMarkers = []; // temp Leaflet markers for dangerPoints
+
+  const btnStart = document.getElementById('btn-start');
+  const btnLocate = document.getElementById('btn-locate');
+  const btnUndo = document.getElementById('btn-undo');
+  const btnFinish = document.getElementById('btn-finish');
+  const btnCancel = document.getElementById('btn-cancel');
+  const btnSubmit = document.getElementById('btn-submit');
+  const drawStatus = document.getElementById('draw-status');
+  const drawActions = document.getElementById('draw-actions');
+  const pointCountEl = document.getElementById('point-count');
+  const safetyRatingInput = document.getElementById('safety-rating');
+  const safetyConcernsInput = document.getElementById('safety-concerns');
+  const comfortSuggestionsInput = document.getElementById('comfort-suggestions');
+  const cautionDragSource = document.getElementById('caution-drag-source');
+  const dangerStatusTextEl = document.getElementById('danger-status-text');
+  const dangerCountEl = document.getElementById('danger-count');
+  const mapContainer = map.getContainer();
+
+  btnLocate.addEventListener('click', () => {
+    if (!navigator.geolocation) return showBanner("Location isn't available in this browser.", true);
+    navigator.geolocation.getCurrentPosition(
+      pos => map.setView([pos.coords.latitude, pos.coords.longitude], 15),
+      () => showBanner("Couldn't get your location.", true)
+    );
+  });
+
+  btnStart.addEventListener('click', () => {
+    drawing = true;
+    routeReady = false;
+    drawPoints = [];
+    clearDrawLayer();
+    clearDangerSpots();
+    drawStatus.classList.add('active');
+    drawActions.style.display = 'flex';
+    btnStart.disabled = true;
+    btnFinish.disabled = true;
+    btnSubmit.disabled = true;
+    pointCountEl.textContent = '0';
+    map.getContainer().style.cursor = 'crosshair';
+    setDangerDragEnabled(true);
+  });
+
+  btnUndo.addEventListener('click', () => {
+    if (!drawPoints.length) return;
+    drawPoints.pop();
+    redrawTemp();
+  });
+
+  btnCancel.addEventListener('click', resetDrawing);
+
+  btnFinish.addEventListener('click', () => {
+    if (drawPoints.length < 2) return;
+    finishDrawing();
+  });
+
+  btnSubmit.addEventListener('click', () => {
+    if (!routeReady || drawPoints.length < 2) return;
+    saveRoute();
+  });
+
+  map.on('click', (e) => {
+    if (!drawing) return;
+    drawPoints.push([e.latlng.lat, e.latlng.lng]);
+    redrawTemp();
+  });
+
+  function redrawTemp(){
+    clearDrawLayer();
+    if (drawPoints.length) {
+      drawLine = L.polyline(drawPoints, {
+        color: '#2D6CDF', weight: 4, opacity: 0.9,
+        dashArray: '2, 11', lineCap: 'round'
+      }).addTo(map);
+      drawPoints.forEach((p, i) => {
+        const isEnd = i === 0 || i === drawPoints.length - 1;
+        const m = L.circleMarker(p, {
+          radius: isEnd ? 6 : 4,
+          color: '#fff', weight: 2,
+          fillColor: '#2D6CDF', fillOpacity: 1
+        }).addTo(map);
+        drawMarkers.push(m);
+      });
+    }
+    pointCountEl.textContent = drawPoints.length;
+    btnFinish.disabled = drawPoints.length < 2;
+  }
+
+  function finishDrawing(){
+    drawing = false;
+    routeReady = true;
+    drawStatus.classList.remove('active');
+    btnUndo.disabled = true;
+    btnFinish.disabled = true;
+    btnSubmit.disabled = false;
+    map.getContainer().style.cursor = '';
+    showBanner('Route finished — answer the questions below, then press Submit.', false);
+  }
+
+  function clearDrawLayer(){
+    if (drawLine) { map.removeLayer(drawLine); drawLine = null; }
+    drawMarkers.forEach(m => map.removeLayer(m));
+    drawMarkers = [];
+  }
+
+  function resetDrawing(){
+    drawing = false;
+    routeReady = false;
+    drawPoints = [];
+    clearDrawLayer();
+    clearDangerSpots();
+    drawStatus.classList.remove('active');
+    drawActions.style.display = 'none';
+    btnStart.disabled = false;
+    btnUndo.disabled = false;
+    btnSubmit.disabled = true;
+    map.getContainer().style.cursor = '';
+    setDangerDragEnabled(false);
+  }
+
+  // ---------- Danger / caution spots ----------
+  function dangerDropEnabled(){
+    return drawing || routeReady;
+  }
+
+  function setDangerDragEnabled(enabled){
+    cautionDragSource.setAttribute('draggable', enabled ? 'true' : 'false');
+    cautionDragSource.classList.toggle('disabled', !enabled);
+    cautionDragSource.title = enabled
+      ? 'Drag me onto the map'
+      : 'Start drawing a route to enable this';
+  }
+
+  cautionDragSource.addEventListener('dragstart', (e) => {
+    if (!dangerDropEnabled()) { e.preventDefault(); return; }
+    e.dataTransfer.setData('text/plain', 'caution-sign');
+    e.dataTransfer.effectAllowed = 'copy';
+    cautionDragSource.classList.add('dragging');
+  });
+  cautionDragSource.addEventListener('dragend', () => {
+    cautionDragSource.classList.remove('dragging');
+    mapContainer.classList.remove('drop-armed');
+  });
+
+  mapContainer.addEventListener('dragover', (e) => {
+    if (!dangerDropEnabled()) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    mapContainer.classList.add('drop-armed');
+  });
+  mapContainer.addEventListener('dragleave', () => {
+    mapContainer.classList.remove('drop-armed');
+  });
+  mapContainer.addEventListener('drop', (e) => {
+    mapContainer.classList.remove('drop-armed');
+    if (!dangerDropEnabled()) return;
+    if (e.dataTransfer.getData('text/plain') !== 'caution-sign') return;
+    e.preventDefault();
+    const latlng = map.mouseEventToLatLng(e);
+    addDangerSpot(latlng.lat, latlng.lng);
+  });
+
+  function addDangerSpot(lat, lng){
+    const id = 'd_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    dangerPoints.push({ id, lat, lng });
+    const marker = L.marker([lat, lng], { icon: cautionIcon(), draggable: true, zIndexOffset: 900 })
+      .addTo(map)
+      .bindTooltip('Danger spot — drag to adjust, click to remove', { direction: 'top' });
+    marker.on('dragend', () => {
+      const p = marker.getLatLng();
+      const dp = dangerPoints.find(d => d.id === id);
+      if (dp) { dp.lat = p.lat; dp.lng = p.lng; }
+    });
+    marker.on('click', () => {
+      if (!confirm('Remove this danger marker?')) return;
+      map.removeLayer(marker);
+      dangerMarkers = dangerMarkers.filter(m => m !== marker);
+      dangerPoints = dangerPoints.filter(d => d.id !== id);
+      renderDangerStatus();
+    });
+    dangerMarkers.push(marker);
+    renderDangerStatus();
+  }
+
+  function clearDangerSpots(){
+    dangerMarkers.forEach(m => map.removeLayer(m));
+    dangerMarkers = [];
+    dangerPoints = [];
+    renderDangerStatus();
+  }
+
+  function renderDangerStatus(){
+    dangerCountEl.textContent = dangerPoints.length;
+    dangerStatusTextEl.textContent = dangerDropEnabled()
+      ? 'Drag as many as you need onto the map'
+      : 'Start drawing your route to enable this';
+  }
+
+  function routeDistanceKm(points){
+    let total = 0;
+    for (let i = 1; i < points.length; i++) {
+      total += L.latLng(points[i-1]).distanceTo(L.latLng(points[i]));
+    }
+    return total / 1000;
+  }
+
+  // ---------- Anonymous visitor ID (for route privacy) ----------
+  //
+  // No login is required, so we generate a random ID once per browser
+  // and store it in localStorage. Routes are tagged with this ID when
+  // saved, and the map only ever loads routes tagged with the current
+  // browser's ID — so visitors only see their own routes, never anyone
+  // else's. Clearing browser storage or switching devices/browsers
+  // starts a "new" identity with no routes.
+  //
+  // Note: this is privacy-by-convenience, not real security — it keeps
+  // routes out of other visitors' view in the app itself, but doesn't
+  // stop someone from reading the raw Firestore data directly. For
+  // stronger guarantees you'd add Firebase Authentication and matching
+  // Firestore security rules.
+  function getOwnerId(){
+    let id = localStorage.getItem('bp_owner_id');
+    if (!id) {
+      id = 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('bp_owner_id', id);
+    }
+    return id;
+  }
+  const OWNER_ID = getOwnerId();
+
+  // Admin view: lets whoever runs this page (the survey organizer) see
+  // and export every route from every visitor, not just their own.
+  // ✏️ Change this password before hosting — it's only a soft gate
+  // (checked in the browser, not enforced server-side), so don't rely
+  // on it to protect sensitive data. Pair it with Firestore security
+  // rules if you need a real guarantee.
+  const ADMIN_PASSWORD = 'Penelope';
+  let adminMode = false;
+
+  // ---------- Storage (Firebase Firestore) ----------
+  //
+  // ⚠️ REPLACE THIS with your own Firebase project's config before hosting.
+  // Get it from: Firebase Console → Project settings → General → "Your apps" → SDK setup and configuration.
+  const firebaseConfig = {
+    apiKey: "AIzaSyAOuFGXS37HVhD4UVSxdVpepBl1GX8PbCk",
+    authDomain: "alisal-safe-routes.firebaseapp.com",
+    projectId: "alisal-safe-routes",
+    storageBucket: "alisal-safe-routes.firebasestorage.app",
+    messagingSenderId: "49094351783",
+    appId: "1:49094351783:web:3da0e6ba46ddb7af3af482"
+  };
+  const ROUTES_COLLECTION = 'routes';
+
+  let allRoutes = [];
+  let renderedLayers = {};
+  let selectedId = null;
+  let db = null;
+  let firebaseReady = false;
+
+  try {
+    if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+      throw new Error('Firebase config not filled in yet');
+    }
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    firebaseReady = true;
+  } catch (e) {
+    console.error('Firebase not configured:', e.message);
+  }
+
+  let unsubscribeRoutes = null;
+
+  function subscribeToRoutes(){
+    if (!firebaseReady) {
+      showBanner('Storage isn\'t configured yet — routes won\'t save. See firebaseConfig in the code.', true);
+      renderAll();
+      return;
+    }
+    if (unsubscribeRoutes) { unsubscribeRoutes(); unsubscribeRoutes = null; }
+    // Note: admin mode sorts with orderBy() (a single-field query, which
+    // Firestore auto-indexes with no setup). The "my routes" query below
+    // filters by ownerId instead of sorting server-side — combining a
+    // where() filter with orderBy() on a *different* field needs a
+    // composite index you'd have to create by hand in the Firebase
+    // console. Sorting client-side after the fact avoids that entirely.
+    const query = adminMode
+      ? db.collection(ROUTES_COLLECTION).orderBy('createdAt', 'desc')
+      : db.collection(ROUTES_COLLECTION).where('ownerId', '==', OWNER_ID);
+    unsubscribeRoutes = query.onSnapshot(
+      snapshot => {
+        allRoutes = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            points: (data.points || []).map(p => [p.lat, p.lng]),
+            dangerSpots: (data.dangerSpots || []).map(p => [p.lat, p.lng])
+          };
+        });
+        if (!adminMode) {
+          allRoutes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+        renderAll();
+      },
+      err => {
+        console.error('Firestore sync error:', err);
+        showBanner("Couldn't connect to the routes database. Check your Firebase config and security rules.", true);
+      }
+    );
+  }
+
+  async function saveRouteRemote(route){
+    if (!firebaseReady) return false;
+    try {
+      const firestoreRoute = {
+        ...route,
+        points: route.points.map(p => ({ lat: p[0], lng: p[1] })),
+        dangerSpots: (route.dangerSpots || []).map(p => ({ lat: p[0], lng: p[1] }))
+      };
+      await db.collection(ROUTES_COLLECTION).doc(route.id).set(firestoreRoute);
+      return true;
+    } catch (e) {
+      console.error('Save failed:', e);
+      return false;
+    }
+  }
+
+  async function deleteRouteRemote(id){
+    if (!firebaseReady) return false;
+    try {
+      await db.collection(ROUTES_COLLECTION).doc(id).delete();
+      return true;
+    } catch (e) {
+      console.error('Delete failed:', e);
+      return false;
+    }
+  }
+
+  async function saveRoute(){
+    const safetyRating = safetyRatingInput.value;
+    const name = 'Unnamed route';
+    const safetyConcerns = safetyConcernsInput.value.trim();
+    const comfortSuggestions = comfortSuggestionsInput.value.trim();
+    const points = drawPoints.slice();
+    const distanceKm = routeDistanceKm(points);
+    const dangerSpots = dangerPoints.map(d => [d.lat, d.lng]);
+    const route = {
+      id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      ownerId: OWNER_ID,
+      name, points, distanceKm, safetyRating, safetyConcerns, comfortSuggestions, dangerSpots,
+      createdAt: new Date().toISOString(),
+      color: PALETTE[allRoutes.length % PALETTE.length]
+    };
+    safetyRatingInput.value = '';
+    safetyConcernsInput.value = '';
+    comfortSuggestionsInput.value = '';
+    resetDrawing();
+    const ok = await saveRouteRemote(route);
+    // On success, the live Firestore listener (subscribeToRoutes) updates
+    // allRoutes and re-renders automatically — no manual render needed here.
+    showBanner(
+      ok ? 'Route saved — thanks for adding it!' : "Couldn't save your route — check your connection and try again.",
+      !ok
+    );
+  }
+
+  async function deleteRoute(id){
+    const ok = await deleteRouteRemote(id);
+    if (!ok) showBanner("Couldn't remove the route — check your connection and try again.", true);
+    // On success, the live Firestore listener updates the list automatically.
+  }
+
+  // ---------- Rendering ----------
+  function renderAll(){
+    Object.values(renderedLayers).forEach(layers => layers.forEach(l => map.removeLayer(l)));
+    renderedLayers = {};
+
+    allRoutes.forEach(route => {
+      const isSelected = route.id === selectedId;
+      const line = L.polyline(route.points, {
+        color: route.color,
+        weight: isSelected ? 5 : 3,
+        opacity: isSelected ? 0.95 : 0.55,
+        dashArray: '1, 9',
+        lineCap: 'round'
+      }).addTo(map);
+      const home = L.marker(route.points[0], { icon: homeIcon() }).addTo(map)
+        .bindTooltip(route.name + ' — start', { direction: 'top' });
+      const school = L.marker(route.points[route.points.length-1], { icon: schoolIcon() }).addTo(map)
+        .bindTooltip(route.name + ' — school', { direction: 'top' });
+      const dangerLayers = (route.dangerSpots || []).map(p =>
+        L.marker(p, { icon: cautionIcon(), zIndexOffset: 800 }).addTo(map)
+          .bindTooltip('Danger spot on ' + route.name, { direction: 'top' })
+      );
+      renderedLayers[route.id] = [line, home, school, ...dangerLayers];
+    });
+
+    renderList();
+    document.getElementById('header-count').textContent =
+      adminMode ? allRoutes.length + ' routes total (admin)' : allRoutes.length + ' of your routes';
+    document.getElementById('route-count').textContent = allRoutes.length;
+    document.getElementById('route-count-label').textContent =
+      adminMode ? 'routes total — admin view' : 'of your routes on the map';
+    document.getElementById('privacy-hint').textContent = adminMode
+      ? 'Admin view — showing every route submitted by every visitor.'
+      : "Only you can see the routes you add — they're private to this browser.";
+    document.getElementById('btn-export-geojson').disabled = allRoutes.length === 0;
+    document.getElementById('btn-export-csv').disabled = allRoutes.length === 0;
+  }
+
+  function renderList(){
+    const listEl = document.getElementById('routes-list');
+    if (!allRoutes.length) {
+      const emptyMsg = adminMode
+        ? 'No routes submitted yet.'
+        : "You haven't added a route yet.<br>Trace your ride to get started.";
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#6B7D72" stroke-width="1.5"><path d="M9 20l-5.5-2V4L9 6m0 14l6-2m-6 2V6m6 12l5.5 2V6L15 4m0 14V4m0 0L9 6"/></svg>
+          <p>${emptyMsg}</p>
+        </div>`;
+      return;
+    }
+    listEl.innerHTML = '';
+    allRoutes.forEach((route, idx) => {
+      const card = document.createElement('div');
+      card.className = 'route-card' + (route.id === selectedId ? ' selected' : '');
+      card.style.setProperty('--marker-color', route.color);
+      const dist = route.distanceKm < 1
+        ? Math.round(route.distanceKm * 1000) + ' m'
+        : route.distanceKm.toFixed(1) + ' km';
+      const date = new Date(route.createdAt);
+      const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      card.innerHTML = `
+        <div class="route-card-top">
+          <div>
+            <div class="route-marker-no">ROUTE ${String(allRoutes.length - idx).padStart(2,'0')}</div>
+            <div class="route-name"></div>
+          </div>
+        </div>
+        <div class="route-meta"><span>${dist}</span><span>${dateStr}</span><span>Safety: ${route.safetyRating || '—'}</span>${(route.dangerSpots && route.dangerSpots.length) ? `<span>⚠️ ${route.dangerSpots.length} spot${route.dangerSpots.length === 1 ? '' : 's'}</span>` : ''}</div>
+        ${route.safetyConcerns ? `<div class="route-concerns"></div>` : ''}
+        ${route.comfortSuggestions ? `<div class="route-comfort"></div>` : ''}
+        <div class="route-card-bottom">
+          <button class="btn btn-danger" data-id="${route.id}">Remove</button>
+        </div>
+      `;
+      card.querySelector('.route-name').textContent = route.name;
+      if (route.safetyConcerns) {
+        card.querySelector('.route-concerns').textContent = route.safetyConcerns;
+      }
+      if (route.comfortSuggestions) {
+        card.querySelector('.route-comfort').textContent = 'Would change: ' + route.comfortSuggestions;
+      }
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-danger')) return;
+        selectedId = route.id === selectedId ? null : route.id;
+        renderAll();
+        if (selectedId) {
+          const layers = renderedLayers[selectedId];
+          if (layers) map.fitBounds(layers[0].getBounds(), { padding: [60,60] });
+        }
+      });
+      card.querySelector('.btn-danger').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('Remove "' + route.name + '" from the map?')) deleteRoute(route.id);
+      });
+      listEl.appendChild(card);
+    });
+  }
+
+  function showBanner(msg, isError){
+    const b = document.getElementById('banner');
+    b.textContent = msg;
+    b.className = isError ? 'error' : '';
+    b.style.display = 'block';
+    clearTimeout(showBanner._t);
+    showBanner._t = setTimeout(() => { b.style.display = 'none'; }, 3200);
+  }
+
+  // ---------- Export ----------
+  function downloadFile(filename, mimeType, content){
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportGeoJSON(){
+    if (!allRoutes.length) return;
+    const routeFeatures = allRoutes.map(route => ({
+      type: 'Feature',
+      properties: {
+        type: 'route',
+        name: route.name,
+        distance_km: Number(route.distanceKm.toFixed(3)),
+        safety_rating: route.safetyRating || '',
+        safety_concerns: route.safetyConcerns || '',
+        comfort_suggestions: route.comfortSuggestions || '',
+        danger_spot_count: (route.dangerSpots || []).length,
+        created_at: route.createdAt
+      },
+      geometry: {
+        type: 'LineString',
+        // GeoJSON coordinate order is [lng, lat]
+        coordinates: route.points.map(p => [p[1], p[0]])
+      }
+    }));
+    const dangerFeatures = allRoutes.flatMap(route =>
+      (route.dangerSpots || []).map(p => ({
+        type: 'Feature',
+        properties: {
+          type: 'danger_spot',
+          route_name: route.name,
+          created_at: route.createdAt
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: [p[1], p[0]]
+        }
+      }))
+    );
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [...routeFeatures, ...dangerFeatures]
+    };
+    downloadFile('bike-routes.geojson', 'application/geo+json', JSON.stringify(featureCollection, null, 2));
+  }
+
+  function csvEscape(value){
+    const str = String(value);
+    return /[",\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+  }
+
+  function exportCSV(){
+    if (!allRoutes.length) return;
+    const rows = [['name', 'distance_km', 'safety_rating', 'safety_concerns', 'comfort_suggestions', 'created_at', 'point_count', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'full_path', 'danger_spot_count', 'danger_spots']];
+    allRoutes.forEach(route => {
+      const start = route.points[0];
+      const end = route.points[route.points.length - 1];
+      const path = route.points.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join(';');
+      const dangerSpots = route.dangerSpots || [];
+      const dangerPath = dangerSpots.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join(';');
+      rows.push([
+        route.name,
+        route.distanceKm.toFixed(3),
+        route.safetyRating || '',
+        route.safetyConcerns || '',
+        route.comfortSuggestions || '',
+        route.createdAt,
+        route.points.length,
+        start[0].toFixed(6), start[1].toFixed(6),
+        end[0].toFixed(6), end[1].toFixed(6),
+        path,
+        dangerSpots.length,
+        dangerPath
+      ]);
+    });
+    const csv = rows.map(row => row.map(csvEscape).join(',')).join('\n');
+    downloadFile('bike-routes.csv', 'text/csv', csv);
+  }
+
+  document.getElementById('btn-export-geojson').addEventListener('click', exportGeoJSON);
+  document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+
+  const btnAdminToggle = document.getElementById('btn-admin-toggle');
+  btnAdminToggle.addEventListener('click', () => {
+    if (adminMode) {
+      adminMode = false;
+      btnAdminToggle.textContent = 'Admin view';
+      btnAdminToggle.classList.remove('active');
+      selectedId = null;
+      subscribeToRoutes();
+      showBanner('Back to your own routes.', false);
+      return;
+    }
+    const attempt = prompt('Enter the admin password to view every submitted route:');
+    if (attempt === null) return; // cancelled
+    if (attempt !== ADMIN_PASSWORD) {
+      showBanner('Incorrect password.', true);
+      return;
+    }
+    adminMode = true;
+    btnAdminToggle.textContent = 'Exit admin view';
+    btnAdminToggle.classList.add('active');
+    selectedId = null;
+    subscribeToRoutes();
+    showBanner('Admin view — showing every submitted route.', false);
+  });
+
+  subscribeToRoutes();
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(bootApp, 0);
+} else {
+  window.addEventListener('DOMContentLoaded', bootApp);
+}
+</script>
+
+</body>
+</html>
