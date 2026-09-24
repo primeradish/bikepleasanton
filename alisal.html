@@ -248,6 +248,18 @@
   }
   .caution-sign-source.dragging{ opacity:0.5; }
 
+  .caution-sign-source{
+    touch-action: none;            /* stops the browser from scrolling when you drag the icon */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;   /* no iOS long-press callout */
+  }
+  .caution-ghost{
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    transform: translate(-50%, -87%);   /* sign's tip sits on the drop point */
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+  }
   .danger-hint{
     font-size:0.78rem;
     color:#4E6259;
@@ -804,42 +816,76 @@ function initApp(){
     return drawing || routeReady;
   }
 
-  function setDangerDragEnabled(enabled){
-    cautionDragSource.setAttribute('draggable', enabled ? 'true' : 'false');
-    cautionDragSource.classList.toggle('disabled', !enabled);
-    cautionDragSource.title = enabled
-      ? 'Drag me onto the map'
-      : 'Start drawing a route to enable this';
-  }
+function setDangerDragEnabled(enabled){
+  cautionDragSource.classList.toggle('disabled', !enabled);
+  cautionDragSource.title = enabled
+    ? 'Drag me onto the map'
+    : 'Start drawing a route to enable this';
+}
 
-  cautionDragSource.addEventListener('dragstart', (e) => {
-    if (!dangerDropEnabled()) { e.preventDefault(); return; }
-    e.dataTransfer.setData('text/plain', 'caution-sign');
-    e.dataTransfer.effectAllowed = 'copy';
-    cautionDragSource.classList.add('dragging');
-  });
-  cautionDragSource.addEventListener('dragend', () => {
-    cautionDragSource.classList.remove('dragging');
-    mapContainer.classList.remove('drop-armed');
-  });
+// Pointer-based drag (works with mouse, touch, and pen)
+const TOUCH_Y_OFFSET = 44; // px: ghost floats above the finger so it isn't hidden
+let cautionGhost = null;
+let cautionPointerId = null;
+let cautionYOffset = 0;
 
-  mapContainer.addEventListener('dragover', (e) => {
-    if (!dangerDropEnabled()) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-    mapContainer.classList.add('drop-armed');
-  });
-  mapContainer.addEventListener('dragleave', () => {
-    mapContainer.classList.remove('drop-armed');
-  });
-  mapContainer.addEventListener('drop', (e) => {
-    mapContainer.classList.remove('drop-armed');
-    if (!dangerDropEnabled()) return;
-    if (e.dataTransfer.getData('text/plain') !== 'caution-sign') return;
-    e.preventDefault();
-    const latlng = map.mouseEventToLatLng(e);
-    addDangerSpot(latlng.lat, latlng.lng);
-  });
+function pointOverMap(x, y){
+  const r = mapContainer.getBoundingClientRect();
+  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+}
+
+function moveGhost(e){
+  const y = e.clientY - cautionYOffset;
+  cautionGhost.style.left = e.clientX + 'px';
+  cautionGhost.style.top = y + 'px';
+  mapContainer.classList.toggle('drop-armed', pointOverMap(e.clientX, y));
+}
+
+function endCautionDrag(){
+  if (cautionGhost) { cautionGhost.remove(); cautionGhost = null; }
+  cautionPointerId = null;
+  cautionDragSource.classList.remove('dragging');
+  mapContainer.classList.remove('drop-armed');
+}
+
+cautionDragSource.addEventListener('pointerdown', (e) => {
+  if (!dangerDropEnabled()) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  e.preventDefault();
+  cautionPointerId = e.pointerId;
+  cautionDragSource.setPointerCapture(e.pointerId);
+  cautionYOffset = e.pointerType === 'mouse' ? 0 : TOUCH_Y_OFFSET;
+
+  const ghost = cautionDragSource.querySelector('svg').cloneNode(true);
+  ghost.setAttribute('width', '40');
+  ghost.setAttribute('height', '40');
+  ghost.classList.add('caution-ghost');
+  document.body.appendChild(ghost);
+  cautionGhost = ghost;
+  cautionDragSource.classList.add('dragging');
+  moveGhost(e);
+});
+
+cautionDragSource.addEventListener('pointermove', (e) => {
+  if (e.pointerId !== cautionPointerId || !cautionGhost) return;
+  moveGhost(e);
+});
+
+cautionDragSource.addEventListener('pointerup', (e) => {
+  if (e.pointerId !== cautionPointerId || !cautionGhost) return;
+  const x = e.clientX;
+  const y = e.clientY - cautionYOffset;
+  const inside = pointOverMap(x, y);
+  endCautionDrag();
+  if (!inside || !dangerDropEnabled()) return;
+  const r = mapContainer.getBoundingClientRect();
+  const latlng = map.containerPointToLatLng(L.point(x - r.left, y - r.top));
+  addDangerSpot(latlng.lat, latlng.lng);
+});
+
+cautionDragSource.addEventListener('pointercancel', endCautionDrag);
+cautionDragSource.addEventListener('dragstart', (e) => e.preventDefault());
+cautionDragSource.addEventListener('contextmenu', (e) => e.preventDefault()); // Android long-press menu
 
   function addDangerSpot(lat, lng){
     const id = 'd_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
@@ -1081,7 +1127,8 @@ function initApp(){
     document.getElementById('route-count').textContent = allRoutes.length;
     document.getElementById('route-count-label').textContent =
       adminMode ? 'routes total — admin view' : 'of your routes on the map';
-    document.getElementById('privacy-hint').textContent = adminMode
+    const privacyHint = document.getElementById('privacy-hint');
+    if (privacyHint) privacyHint.textContent = adminMode
       ? 'Admin view — showing every route submitted by every visitor.'
       : "Only you can see the routes you add — they're private to this browser.";
     document.getElementById('btn-export-geojson').disabled = allRoutes.length === 0;
