@@ -620,10 +620,10 @@ function initApp(){
   // the map at a different school.
   const SCHOOL_NAME = 'Alisal Elementary School';
   const SCHOOL_ADDRESS = '1454 Santa Rita Rd, Pleasanton, CA 94566';
-  const SCHOOL_FALLBACK_COORDS = [37.6493, -121.8730]; // used only if geocoding fails
+  const SCHOOL_FALLBACK_COORDS = [37.6719, -121.8708]; // used only if geocoding fails
 
   // ---------- Map setup ----------
-  const map = L.map('map', { zoomControl: true }).setView(SCHOOL_FALLBACK_COORDS, 15);
+  const map = L.map('map', { zoomControl: true }).setView(SCHOOL_FALLBACK_COORDS, 16);
 
   function starIcon(){
     return L.divIcon({
@@ -637,23 +637,6 @@ function initApp(){
     .bindPopup(`<strong>${SCHOOL_NAME}</strong>`)
     .bindTooltip(SCHOOL_NAME, { direction: 'top', permanent: false });
 
-  // Geocode the school address for an accurate center point, then
-  // re-center the map and the marker there. Falls back silently to
-  // SCHOOL_FALLBACK_COORDS (already showing) if the lookup fails.
-  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(SCHOOL_ADDRESS + ', USA'))
-    .then(r => r.ok ? r.json() : Promise.reject(new Error('geocode failed')))
-    .then(results => {
-      if (!results || !results.length) return;
-      const lat = parseFloat(results[0].lat);
-      const lon = parseFloat(results[0].lon);
-      if (isNaN(lat) || isNaN(lon)) return;
-      map.setView([lat, lon], 16);
-      L.marker([lat, lon], { icon: starIcon(), zIndexOffset: 1000 })
-        .addTo(map)
-        .bindPopup(`<strong>${SCHOOL_NAME}</strong>`)
-        .bindTooltip(SCHOOL_NAME, { direction: 'top', permanent: false });
-    })
-    .catch(() => { /* keep the fallback view already shown */ });
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_3ji2_1_d1679c95a937e954310dc0ee', {
     attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
     subdomains: 'abcd',
