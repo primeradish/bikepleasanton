@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title> Bike Pleasanton — School Program</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/site.css">
+
+<style>
+  :root{
+    --ink:#16302A;
+    --paper:#EEF2EA;
+    --paper-card:#FFFFFF;
+    --pine:#1F5C4B;
+    --pine-dark:#153F34;
+    --trail-blue:#2D6CDF;
+    --trail-blue-dark:#1E4FB0;
+    --bus-yellow:#F2B705;
+    --brick:#C1443A;
+    --line:#D9E0D4;
+    --shadow: 0 6px 18px rgba(22,48,42,0.10);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; font-family:'Inter', sans-serif; color:var(--ink); background:var(--paper); }
+
+  a{ color:var(--trail-blue-dark); }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:0.9rem;
+    border:none; border-radius:9px; padding:11px 18px; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    transition:transform 0.06s ease, filter 0.15s ease;
+    text-decoration:none;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn:focus-visible{ outline:3px solid var(--bus-yellow); outline-offset:2px; }
+  .btn-primary{ background:var(--trail-blue); color:#fff; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-yellow{ background:var(--bus-yellow); color:#3A2B00; }
+  .btn-yellow:hover{ filter:brightness(1.05); }
+  .btn-ghost{ background:transparent; color:#EAF3EC; border:1.5px solid rgba(255,255,255,0.4); }
+  .btn-ghost:hover{ background:rgba(255,255,255,0.12); }
+
+  header{
+    background:var(--pine); color:#EAF3EC;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 22px; box-shadow:var(--shadow); position:sticky; top:0; z-index:20;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; text-decoration:none; }
+  .brand-mark{ font-size:1.5rem; line-height:1; }
+  .brand h1{ font-family:'Fredoka', sans-serif; font-weight:600; font-size:1.15rem; margin:0; color:#EAF3EC; }
+  .header-left{ display:flex; align-items:center; gap:14px; }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--trail-blue-dark);
+    margin:0 0 12px 0;
+  }
+  .eyebrow a{ color:inherit; }
+
+  main{ max-width:1080px; margin:0 auto; padding:0 24px; }
+
+  .hero{
+    padding:64px 0 52px 0;
+    max-width:640px;
+  }
+  .hero h2{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:2.5rem;
+    line-height:1.15;
+    margin:0 0 18px 0;
+    color:var(--pine-dark);
+  }
+  .hero p{
+    font-size:1.05rem;
+    line-height:1.6;
+    color:#3E5449;
+    margin:0 0 28px 0;
+  }
+  .hero2 p{
+    font-size:1.05rem;
+    line-height:1.65;
+    color:#3E5449;
+    margin:0 0 28px 0;
+  }
+  .hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .btn-primary.large, .btn-ghost.large{ padding:13px 22px; font-size:0.95rem; }
+  .btn-ghost.large{ color:var(--pine-dark); border-color:var(--pine-dark); }
+  .btn-ghost.large:hover{ background:#E3ECE1; }
+
+   .pillars{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:20px;
+    padding:44px 0 52px 0;
+    border-top:1px solid var(--line);
+  }
+  .pillar h3{
+    font-family:'Fredoka', sans-serif;
+    font-size:1.05rem; font-weight:600;
+    margin:0 0 8px 0; color:var(--ink);
+    display:flex; align-items:center; gap:9px;
+  }
+  .pillar .pillar-icon{ font-size:1.2rem; }
+  .pillar p{ font-size:0.9rem; line-height:1.55; color:#4E6259; margin:0; }
+
+  .steps{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:20px;
+    padding:8px 0 52px 0;
+    border-top:1px solid var(--line);
+    padding-top:44px;
+  }
+  .step .step-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color:var(--trail-blue-dark);
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .step h3{
+    font-family:'Fredoka', sans-serif;
+    font-size:1.05rem;
+    font-weight:600;
+    margin:0 0 6px 0;
+    color:var(--ink);
+  }
+  .step p{ font-size:0.9rem; line-height:1.55; color:#4E6259; margin:0; }
+
+  .schools-section{ padding-bottom:56px; }
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    gap:12px; margin-bottom:18px; flex-wrap:wrap;
+  }
+  .section-head h2{
+    font-family:'Fredoka', sans-serif; font-size:1.4rem; font-weight:600;
+    margin:0; color:var(--pine-dark);
+  }
+  .section-head p{ margin:0; font-size:0.88rem; color:#5B6F65; }
+
+  .school-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:14px;
+  }
+  .school-card{
+    background:var(--paper-card);
+    border:1.5px solid var(--line);
+    border-left:4px solid var(--trail-blue);
+    border-radius:10px;
+    padding:16px 18px;
+    text-decoration:none;
+    display:block;
+    transition:box-shadow 0.15s ease;
+  }
+  .school-card:hover{ box-shadow:var(--shadow); }
+  .school-card .sc-name{
+    font-family:'Fredoka', sans-serif; font-weight:600; font-size:1rem;
+    color:var(--ink); margin:0 0 4px 0;
+  }
+  .school-card .sc-addr{ font-size:0.8rem; color:#6B7D72; margin:0 0 10px 0; }
+  .school-card .sc-cta{ font-size:0.84rem; font-weight:600; color:var(--trail-blue-dark); }
+
+  .mail-band{
+    background:var(--pine);
+    color:#EAF3EC;
+    border-radius:14px;
+    padding:34px 30px;
+    margin-bottom:56px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:20px; flex-wrap:wrap;
+  }
+  .mail-band h3{
+    font-family:'Fredoka', sans-serif; font-weight:600; font-size:1.2rem;
+    margin:0 0 6px 0;
+  }
+  .mail-band p{ margin:0; font-size:0.88rem; color:#CFE3DA; max-width:420px; }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:20px 24px 40px 24px;
+    text-align:center;
+    font-size:0.8rem;
+    color:#6B7D72;
+  }
+
+  @media (max-width:760px){
+    .steps{ grid-template-columns:1fr; }
+    .school-grid{ grid-template-columns:1fr; }
+    .hero h2{ font-size:2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div id="site-menu-slot"></div>
+    <a class="brand" href="index.html">
+      <span class="brand-mark">🚲</span>
+      <h1>Bike Pleasanton</h1>
+    </a>
+  </div>
+  <a class="btn btn-ghost mailing-link" id="header-mail-btn" href="https://forms.gle/TBRocHdKMRDZk4A89" target="_blank" rel="noopener">Join our mailing list</a>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="eyebrow"><a href="index.html">Bike Pleasanton</a> / School Program</p>
+    <h2>Every kid deserves a safe way to ride to school.</h2>
+    <h3>Are you a student/parent at Alisal Elementary?  </h3>
+
+<div class="hero-actions">
+  <a href="alisal.html" class="btn btn-primary large">Take the Alisal Elementary Bike Survey</a>
+</div>
+  </section>
+
+
+  
+<section class="schools-section" id="schools">
+    <div class="section-head">
+
+        <h2>How the Survey Works</h2>
+
+  <section class="steps">
+    <div class="step">
+      <div class="step-num">01 </div>
+      <h3>Trace your ride</h3>
+      <p>Click along the streets you bike on to get to school, from your home to the school gate.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Rate the safety</h3>
+      <p>Grade the ride A through F, and tell us which crossings or blocks feel risky.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Mark the danger spots</h3>
+      <p>Drag a caution sign onto the exact intersection or stretch of road that worries you.</p>
+    </div>
+  </section>
+
+
+      <h2>How our School Initiative Works</h2>
+
+ <section class="steps">
+    <div class="step">
+      <h3><span class="pillar-icon">🧭</span> Map student routes</h3>
+      <p>We collect the routes kids take to school through our school bike surveys and have families identify problem intersections and blocks.</p>
+    </div>
+    <div class="step">
+      <h3><span class="pillar-icon">🚦</span> Work with the city and schools to develop safety improvements</h3>
+      <p>We bring that data to the city and schools to advocate for improvements that will create safer streets.</p>
+    </div>
+    <div class="step">
+      <h3><span class="pillar-icon">🤝</span> Organize the community</h3>
+      <p> We work with parents and community members who want to make their school safer to bike to. We help bring  <a href="https://alamedacountysr2s.org/our-services/" target="_blank">Safe Routes to School</a> programs to Pleasanton Schools.</p>
+    </div>
+  </section>
+
+<p> Currently we only have a bike survey for Alisal Elementary school.  If you're interested in bringing a bike survey to your Pleasanton school, let us know by emailing us at <b>info@bikepleasanton.org</b> </p>
+
+
+<h2 class="page-title">Why safer routes to school</h2>
+ <section class="hero2">
+    <p>	Our members let us know that creating safer paths for kids to bike to school was their number one priority.  Providing safe streets for kids to bike to school reduces school traffic, increases kids's autonomy, reduces greenhouse gas emissions, and improves the health of kids in Pleasanton.</p>
+ <br>
+  </section>
+
+  <section class="mail-band">
+    <div>
+      <h3>Stay in the loop</h3>
+      <p> Join our mailing list to find out when a new school opens for surveys, or to hear about other advocacy opportunities.</p>
+    </div>
+    <a class="btn btn-yellow mailing-link" id="band-mail-btn" href="https://forms.gle/TBRocHdKMRDZk4A89" target="_blank" rel="noopener">Join our mailing list</a>
+  </section>
+</main>
+
+<footer>
+  Bike Pleasanton is an independent, resident-run community project — not an official Pleasanton Unified School District site.
+</footer>
+
+<script>
+  window.SITE_ROOT = '../';
+  window.CURRENT_PAGE = 'schools';
+</script>
+<script src="../shared/schools-data.js"></script>
+<script>
+  const grid = document.getElementById('school-grid');
+  window.PLEASANTON_SCHOOLS.forEach(s => {
+    const a = document.createElement('a');
+    a.className = 'school-card';
+    a.href = s.slug + '.html';
+    a.innerHTML = '<p class="sc-name">' + s.name + '</p>' +
+      '<p class="sc-addr">' + s.address + '</p>' +
+      '<span class="sc-cta">Start the survey</span>';
+    grid.appendChild(a);
+  });
+</script>
+<script src="../shared/mailing-list-link.js"></script>
+<script src="../shared/site-nav.js"></script>
+</body>
+</html>
